@@ -1,0 +1,26 @@
+service:
+  name: cart
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+
+replicaCount: 1
+
+container:
+  name: cart-container
+  containerPort: 8080
+
+image:
+  repository: sivaram0101/cart-roboshop
+  tag: v1
+  pullPolicy: IfNotPresent
+
+env:
+- name: REDIS_HOST
+  value: "redis"
+- name: REDIS_PORT
+  value: "6379"
+- name: CATALOGUE_HOST
+  value: "catalogue"
+- name: CATALOGUE_PORT
+  value: "8080"

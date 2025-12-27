@@ -1,0 +1,23 @@
+service:
+  name: catalogue
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+
+replicaCount: 1
+
+image:
+  repository: sivaram0101/catalogue-roboshop
+  tag: v1
+  pullPolicy: IfNotPresent
+  containerPort: 8080
+  
+env:
+- name: MONGO
+  value: "true"
+- name: MONGO_URL
+  value: "mongodb://mongodb:27017/catalogue"
+
+# extraEnv:
+#  MONGO: "true"
+#  MONGO_URL: "mongodb://mongodb:27017/catalogue"

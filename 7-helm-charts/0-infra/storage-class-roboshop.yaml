@@ -1,0 +1,11 @@
+# Note: a helm chart can be deployed as infra chart. with storage class, resource quotas, resource limits etc...
+# storage class
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: sc-for-kind
+provisioner: kubernetes.io/no-provisioning
+reclaimPolicy: Delete # options: Retain, Delete
+volumeBindingMode: WaitForFirstConsumer # options: Immediate, WaitForFirstConsumer
+---

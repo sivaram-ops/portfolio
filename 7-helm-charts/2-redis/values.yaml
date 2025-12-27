@@ -1,0 +1,26 @@
+service:
+  name: redis
+  port: 6379
+  targetPort: 6379
+
+storage:
+  size: 1Gi
+  hostPath: /backup/redis
+  className: sc-for-kind
+  reclaimPolicy: Retain
+  bindingMode: Immediate
+  accessMode: ReadWriteOnce
+
+replicaCount: 1
+
+image:
+  repository: sivaram0101/redis-roboshop
+  tag: v1
+  pullPolicy: IfNotPresent
+
+ports:
+  containerPort: 6379
+
+volumeMounts:
+  name: redis-app-data
+  mountPath: /data

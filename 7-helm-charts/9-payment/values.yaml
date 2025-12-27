@@ -1,0 +1,32 @@
+service:
+  name: payment
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+
+replicaCount: 1
+
+image:
+  repository: sivaram0101/payment-roboshop
+  tag: v1
+  pullPolicy: IfNotPresent
+
+container:
+  name: payment-container
+  containerPort: 8080
+
+env:
+- name: CART_HOST
+  value: "cart"
+- name: CART_PORT
+  value: "8080"
+- name: USER_HOST
+  value: "user"
+- name: USER_PORT
+  value: "8080"
+- name: AMQP_HOST
+  value: "rabbitmq"
+- name: AMQP_USER
+  value: "roboshop"
+- name: AMQP_PASS
+  value: "roboshop123"

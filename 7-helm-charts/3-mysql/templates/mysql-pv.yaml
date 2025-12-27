@@ -1,0 +1,14 @@
+# mysql pv
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv
+spec:
+  storageClassName: {{ .Values.storage.className }}
+  accessModes: [ {{ .Values.storage.accessMode | quote }} ]
+  capacity:
+    storage: {{ .Values.storage.size }}
+  hostPath:
+    path: {{ .Values.storage.hostPath }}
+  persistentVolumeReclaimPolicy: {{ .Values.storage.reclaimPolicy }}
+---

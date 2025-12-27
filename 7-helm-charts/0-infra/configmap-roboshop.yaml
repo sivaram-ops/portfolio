@@ -1,0 +1,19 @@
+---
+# config map
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: roboshop-config-map
+  labels:
+    app: configmaps
+immutable: false
+data:
+  MYSQL_DATABASE: cities
+  MYSQL_USER: shipping
+  MYSQL_PASSWORD: RoboShop@1
+  MYSQL_ROOT_PASSWORD: RoboShop@1
+  RABBITMQ_DEFAULT_USER: roboshop
+  RABBITMQ_DEFAULT_PASS: roboshop123
+  AMQP_USER: roboshop
+  AMQP_PASS: roboshop123
+---

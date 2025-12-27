@@ -1,0 +1,24 @@
+service:
+  name: shipping
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+
+replicaCount: 1
+
+container:
+  name: shipping-container
+  containerPort: 8080
+
+image:
+  repository: sivaram0101/shipping-roboshop
+  tag: v1
+  pullPolicy: IfNotPresent
+
+env:
+- name: CART_ENDPOINT
+  value: "cart:8080"
+- name: DB_HOST
+  value: "mysql"
+- name: DBHOST
+  value: "mysql"

@@ -1,0 +1,51 @@
+storage:
+  size: 1Gi
+  name: rabbitmq-data
+  className: sc-for-kind
+  mountPath: /var/lib/rabbitmq
+  hostPath: /backup/rabbitmq
+  accessMode: ReadWriteOnce
+  reclaimPolicy: Delete
+  bindingMode: WaitForFirstConsumer
+
+service:
+  name: rabbitmq
+
+ports:
+- port: 5671
+  targetPort: 5671
+  name: rabbitmq-tls
+  protocol: TCP
+- port: 5672
+  targetPort: 5672
+  name: rabbitmq-amqp
+  protocol: TCP
+
+mqDashboard:
+  name: rabbitmq-dashboard
+  type: NodePort
+  port: 15672
+  targetPort: 15672
+  nodePort: 30000
+
+replicaCount: 1
+
+container:
+  name: rabbitmq-container
+
+containerPorts:
+- containerPort: 5671
+- containerPort: 5672
+- containerPort: 15671
+- containerPort: 15672
+
+image:
+  repository: sivaram0101/rabbitmq-roboshop
+  tag: v1
+  pullPolicy: IfNotPresent
+
+env:
+- name: RABBITMQ_DEFAULT_USER
+  value: roboshop
+- name: RABBITMQ_DEFAULT_PASS
+  value: roboshop123

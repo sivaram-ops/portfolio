@@ -1,0 +1,41 @@
+# statefulset
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  serviceName: {{ .Values.service.name }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ .Values.container.name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        ports:
+        {{- toYaml .Values.containerPorts | nindent 8 }}
+        env:
+        {{- toYaml .Values.env | nindent 8}}
+        volumeMounts:
+        - name: {{ .Values.storage.name }}
+          mountPath: {{ .Values.storage.mountPath }}
+      # volumes:
+      #   - name: rabbitmq-volume
+      #     persistentVolumeClaim:
+      #       claimName: rabbitmq-pvc-0
+  volumeClaimTemplates:
+  - metadata:
+      name: {{ .Values.storage.name }}
+    spec:
+      storageClassName: {{ .Values.storage.calssName }}
+      accessModes: [ {{ .Values.storage.accessMode }} ]
+      resources:
+        requests:
+          storage: {{ .Values.storage.size }}
+---
