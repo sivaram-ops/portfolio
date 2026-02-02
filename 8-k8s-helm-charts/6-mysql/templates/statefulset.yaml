@@ -1,0 +1,82 @@
+---
+# statefulset
+# note: here i am using the envs, next i should use configmaps and secrets.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "{{ .Release.Name }}-statefulset"
+  labels:
+    app: "{{ .Release.Name }}-statefulsets"
+spec:
+  serviceName: {{ .Values.service.name }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ .Values.container.name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        {{- toYaml .Values.env | nindent 8 }}
+        ports:
+        - containerPort: {{ .Values.container.containerPort }}
+        # resources:
+        #   requests:
+        #     memory: 2048Mi
+        #     cpu: 3000m
+        #   limits:
+        #     memory: 4096Mi
+        #     cpu: 4000m
+        # startupProbe:
+        #   tcpSocket:
+        #     port: 3306
+        #   initialDelaySeconds: 10
+        #   periodSeconds: 30
+        #   successThreshold: 1
+        #   failureThreshold: 30
+        # readinessProbe:
+        #   tcpSocket:
+        #     port: 3306
+        #   initialDelaySeconds: 10
+        #   periodSeconds: 30
+        #   successThreshold: 1
+        #   failureThreshold: 5
+        # livenessProbe:
+        #   tcpSocket:
+        #     port: 3306
+        #   initialDelaySeconds: 180
+        #   periodSeconds: 30
+        #   successThreshold: 1
+        #   failureThreshold: 3
+        volumeMounts:
+        - name: {{ .Values.storage.name }}
+          mountPath: {{ .Values.storage.mountPath }}
+        # - name: mysql-config
+        #   mountPath: /etc/mysql/conf.d
+      # volumes:
+      # - name: mysql-data
+      #   persistentVolumeClaim:
+      #     claimName: mysql-pvc
+      # - name: mysql-config
+      #   configMap:
+      #     name: mysql-low-memory-config
+  volumeClaimTemplates:
+  - metadata:
+      name: {{ .Values.storage.name }}
+  # apiVersion: v1
+  # kind: PersistentVolumeClaim
+  # metadata:
+  #   name: mysql-pvc
+    spec:
+      storageClassName: {{ .Values.storage.className }}
+      accessModes: [ {{ .Values.storage.accessMode | quote }} ]
+      resources:
+        requests:
+          storage: {{ .Values.storage.size }}
+---

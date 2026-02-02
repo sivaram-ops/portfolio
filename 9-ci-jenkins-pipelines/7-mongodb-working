@@ -1,0 +1,61 @@
+pipeline {
+    agent any
+    environment {
+        service = 'mongodb'
+        repoURL = "https://github.com/sivaram-ops/roboshop-mongodb.git"
+        imageName = "${service}:${env.BUILD_ID}"
+        containerName = "${service}-${env.BUILD_ID}"
+        networkName = "roboshop-${env.BUILD_ID}"
+    }
+    stages {
+        stage('git checkout') {
+            steps {
+                git branch: 'main', url: "${repoURL}"
+            }
+        }
+        stage('docker lint') {
+            steps {
+                sh "docker run --rm -i hadolint/hadolint < Dockerfile || true"
+            }
+        }
+        stage('image build') {
+            steps {
+                sh "docker build -t ${imageName} ."
+            }
+        }
+        stage('image scan') {
+            steps {
+                sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v trivy-data:/root/.cache aquasec/trivy image --severity HIGH,CRITICAL ${imageName}"
+            }
+        }
+        stage('schema validation') {
+            steps {
+                script {
+                    sh "docker run -d --name ${containerName} ${imageName}"
+                    echo "waiting 20 sec for the container to start"
+                    sleep 20
+                    def checkDB = sh(script: "docker exec ${containerName} mongosh --eval 'db.getMongo().getDBNames()' | grep catalogue", returnStatus: true)
+                    if (checkDB == 0) {
+                        echo "success. schema loaded successfully"
+                    } else {
+                        error "failure. schema not found in ${containerName}"
+                    }
+                }
+            }
+            post {
+                always {
+                    sh "docker stop ${containerName} || true"
+                    sh "docker rm ${containerName} || true"
+                }
+            }
+        }
+    }
+    post {
+        success {
+            echo "${imageName} is ready for use by other microservices"
+        }
+        cleanup {
+            sh "docker rmi ${imageName} || true"
+        }
+    }
+}

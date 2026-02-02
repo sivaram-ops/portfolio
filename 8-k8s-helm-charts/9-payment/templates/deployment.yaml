@@ -1,0 +1,49 @@
+# deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ .Values.container.name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.container.containerPort }}
+        # resources:
+        #   requests:
+        #     memory: "300Mi"
+        #     cpu: "300m"
+        #   limits:
+        #     memory: "500Mi"
+        #     cpu: "500m"
+        env:
+        {{- toYaml .Values.env | nindent 8 }}
+        # startupProbe:
+        #   tcpSocket:
+        #     port: 8080
+        #   initialDelaySeconds: 10
+        #   periodSeconds: 5
+        #   failureThreshold: 24
+        # livenessProbe:
+        #   tcpSocket:
+        #     port: 8080
+        #   periodSeconds: 30
+        #   failureThreshold: 3
+        # readinessProbe:
+        #   tcpSocket:
+        #     port: 8080
+        #   periodSeconds: 10
+        #   failureThreshold: 1
+---

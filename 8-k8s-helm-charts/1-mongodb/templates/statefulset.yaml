@@ -1,0 +1,66 @@
+# Stateful Set
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "{{ .Release.Name }}-statefulset"
+  labels:
+    app: "{{ .Chart.Name }}-statefulsets"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: "{{ .Release.Name }}"
+      # app: {{ .Values.mongodb.labels.app }}
+  serviceName: "{{ .Release.Name }}"
+  # serviceName: {{ .Values.service.name }}
+  template:
+    metadata:
+      labels:
+        app: "{{ .Release.Name }}"
+        # app: {{ .Values.mongodb.labels.app }}
+    spec:
+      containers:
+      - name: "{{ .Values.container.name }}"
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.container.port }}
+        # resources:
+        #   requests:
+        #     memory: "300Mi"
+        #     cpu: 300m
+        #   limits:
+        #     memory: "500Mi"
+        #     cpu: 500m
+        # startupProbe:
+        #   tcpSocket:
+        #     port: 27017
+        #   initialDelaySeconds: 10
+        #   periodSeconds: 5
+        #   failureThreshold: 24
+        # livenessProbe:
+        #   tcpSocket:
+        #     port: 27017
+        #   periodSeconds: 30
+        #   failureThreshold: 3
+        # readinessProbe:
+        #   tcpSocket:
+        #     port: 27017
+        #   periodSeconds: 10
+        #   failureThreshold: 1
+        volumeMounts:
+        - name: mongodb-stateful-volume
+          mountPath: /data/db
+      # volumes:
+      # - name: mongodb-stateful-volume
+      #   persistentVolumeClaim:
+      #     claimName: mongodb-pvc
+  volumeClaimTemplates:
+  - metadata:
+      name: mongodb-stateful-volume
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: {{ .Values.storage.className }}
+      resources:
+        requests:
+          storage: {{ .Values.storage.size }}

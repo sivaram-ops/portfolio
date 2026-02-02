@@ -1,0 +1,45 @@
+# Headless service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  clusterIP: None
+  selector:
+    app: {{ .Release.Name }}
+  ports:
+  {{- toYaml .Values.ports | nindent 2 }}
+  # - name: rabbitmq-tls
+  #   protocol: TCP
+  #   port: 5671
+  #   targetPort: 5671
+  # - name: rabbitmq-amqp
+  #   protocol: TCP
+  #   port: 5672
+  #   targetPort: 5672
+  #   the following is commented as i added another service for the same.
+  # - name: management-plugin-tls
+  #   protocol: TCP
+  #   port: 15671
+  #   targetPort: 15671
+  # - name: management-plugin-http
+  #   protocol: TCP
+  #   port: 15672
+  #   targetPort: 15672
+---
+# To access management plugin. Options are NodePort/LoadBalancer.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.mqDashboard.name }}
+  # name: rabbitmq-management-plugin-access
+spec:
+  type: {{ .Values.mqDashboard.type }}
+  selector:
+    app: {{ .Release.Name }}
+  ports:
+  - protocol: TCP
+    port: {{ .Values.mqDashboard.port }}
+    targetPort: {{ .Values.mqDashboard.targetPort }}
+    nodePort: {{ .Values.mqDashboard.nodePort }}
+---

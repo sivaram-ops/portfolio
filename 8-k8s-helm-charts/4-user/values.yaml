@@ -1,0 +1,22 @@
+service:
+  name: user
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+
+replicaCount: 1
+
+image:
+  repository: sivaram0101/user-roboshop
+  tag: v1
+  pullPolicy: IfNotPresent
+
+container:
+  name: user-container
+  containerPort: 8080
+
+env:
+- name: REDIS_HOST
+  value: "redis"
+- name: MONGO_URL
+  value: "mongodb://mongodb:27017/users"

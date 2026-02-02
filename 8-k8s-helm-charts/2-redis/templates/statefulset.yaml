@@ -1,0 +1,45 @@
+# stateful set
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "{{ .Release.Name }}-statefulset"
+  labels:
+    app: "{{ .Release.Name }}-statefulsets"
+spec:
+  serviceName: {{ .Values.service.name }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: "{{ .Release.Name }}-container"
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 6379
+        volumeMounts:
+      # - name: redis-pvc-template
+        - name: {{ .Values.volumeMounts.name }}
+          mountPath: {{ .Values.volumeMounts.mountPath }}
+      # volumes:
+      # - name: redis-app-data
+      #   persistentVolumeClaim:
+      #     claimName: redis-pvc
+# volumes are working fine. but commenting it and using 'pvc template'.
+  volumeClaimTemplates:
+    - metadata:
+        name: redis-app-data # This creates the PVCs (e.g., redis-pvc-template-0)
+        # labels:
+        #   app: redis-pvc
+      spec:
+        storageClassName: {{ .Values.storage.className }}
+        accessModes: [ {{ .Values.storage.accessMode | quote }} ]
+        resources:
+          requests:
+            storage: {{ .Values.storage.size }}
+---

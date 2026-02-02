@@ -1,0 +1,17 @@
+# redis-pv
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-pv
+  labels:
+    app: redis-pv
+spec:
+  storageClassName: {{ .Values.storage.className }}
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: {{ .Values.storage.size }}
+  hostPath:
+    path: {{ .Values.storage.hostPath }}
+  persistentVolumeReclaimPolicy: {{ .Values.storage.reclaimPolicy }}
+---

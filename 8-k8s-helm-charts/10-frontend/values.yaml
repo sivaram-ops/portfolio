@@ -1,0 +1,22 @@
+replicaCount: 1
+
+image:
+  repository: sivaram0101/frontend-roboshop
+  tag: v1
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    memory: 100Mi
+    cpu: 100m
+  limits:
+    memory: 200Mi
+    cpu: 200m
+
+service:
+  type: NodePort
+  port: 80
+  targetPort: 80
+  nodePort: 30000
+
+# next i will try the probes

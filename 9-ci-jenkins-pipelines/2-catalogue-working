@@ -1,0 +1,78 @@
+pipeline {
+    agent any
+    environment {
+        serviceName = 'catalogue'
+        repoURL = 'https://github.com/sivaram-ops/roboshop-catalogue.git'
+        imageName = "${serviceName}:${env.BUILD_ID}"
+        containerName = "${serviceName}-${env.BUILD_ID}"
+        networkName = "roboshop-${env.BUILD_ID}"
+        sonarHome = tool 'sonar-scanner'
+        owaspHome = tool 'DP-Check'
+    }
+    stages {
+        stage('git checkout') {
+            steps {
+                git branch: 'main', url: "${repoURL}"
+            }
+        }
+        stage('compile nodejs') {
+            agent { 
+                docker {
+                    image 'node:20-alpine'
+                    reuseNode true
+                }
+            }
+            steps {
+                sh "npm install"
+            }
+        }
+        stage('code analysis') {
+            parallel {
+                stage('sonarqube analysis') {
+                    steps {
+                        withSonarQubeEnv('sonarqube-server') {
+                            sh "${sonarHome}/bin/sonar-scanner -Dsonar.projectName=${serviceName} -Dsonar.projectKey=${serviceName} -Dsonar.sources=."
+                        }
+                    }
+                }
+                stage('owasp analysis') {
+                    steps {
+                        sh "${owaspHome}/bin/dependency-check.sh --project ${serviceName} --scan . --format ALL --disableNodeAudit --disableYarnAudit"
+                        dependencyCheckPublisher pattern: '**/dependency-check-report.xml', failedTotalHigh: 5, failedNewHigh: 2, unstableTotalCritical: 2, stopBuild: true
+                        archiveArtifacts artifacts: '**/dependency-check-report.*', allowEmptyArchive: true
+                    }
+                }
+            }
+        }
+        // stage('quality gate') {
+        //     steps {
+        //         script {
+        //             timeout(time:5, unit:'MINUTES') {
+        //                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+        //                     waitForQualityGate abortPipeline: true
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+        stage('build') {
+            steps {
+                script {
+                    sh "docker network create ${networkName}"
+                    sh "docker build -t ${imageName} ."
+                    sh "docker run -d --name ${containerName} --network ${networkName} ${imageName}"
+                    sh "sleep 10"
+                    sh "docker run --rm --network ${networkName} curlimages/curl -f -v -I http://${containerName}:8080/health"
+                }
+            }
+        }
+    }
+    post {
+        always {
+            sh "docker stop ${containerName} || true"
+            sh "docker rm ${containerName} || true"
+            sh "docker network rm ${networkName} || true"
+            sh "docker rmi ${imageName} || true"
+        }
+    }
+}

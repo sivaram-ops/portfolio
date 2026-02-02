@@ -1,0 +1,65 @@
+pipeline {
+    agent any
+    environment {
+        service = 'mysql'
+        repo = "https://github.com/sivaram-ops/roboshop-mysql.git"
+        imageName = "${service}:${env.BUILD_ID}"
+        containerName = "${service}-${env.BUILD_ID}"
+        DB_PASSWORD = "RoboShop@1"
+    }
+    stages {
+        stage('git checkout') {
+            steps {
+                git branch: 'main', url: "${repo}"
+            }
+        }
+        stage('docker lint') {
+            steps {
+                sh "docker run --rm -i hadolint/hadolint < Dockerfile || true"
+            }
+        }
+        stage('docker build') {
+            steps {
+                sh "docker build -t ${imageName} ."
+            }
+        }
+        stage('image scan') {
+            steps {
+                sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v trivy-data:/root/.cache aquasec/trivy image --severity HIGH,CRITICAL ${imageName}"
+            }
+        }
+        stage('schema validation') {
+            steps {
+                script {
+                    sh "docker run -d --name ${containerName} -e MYSQL_ROOT_PASSWORD=${DB_PASSWORD} ${imageName}"
+                    sleep 30
+                    def checkDB = sh(
+                        script: "docker exec ${containerName} mysql -u root -p${DB_PASSWORD} -e 'show databases;' | grep -i cities",
+                        returnStatus: true
+                    )
+                    if(checkDB == 0) {
+                        echo "success. mysql schema loaded successfully"
+                    }
+                    else {
+                        sh "docker exec ${containerName} mysql -u root -p${DB_PASSWORD} -e 'show databases;'"
+                        error "FAILURE: 'cities' database not found in ${containerName}"
+                    }
+                }
+            }
+            post {
+                always {
+                    sh "docker stop ${containerName} || true"
+                    sh "docker rm ${containerName} || true"
+                }
+            }
+        }
+    }
+    post {
+        success {
+            echo "mysql database is ready for use by other applications"
+        }
+        always {
+            sh "docker rmi ${imageName} || true"
+        }
+    }
+}

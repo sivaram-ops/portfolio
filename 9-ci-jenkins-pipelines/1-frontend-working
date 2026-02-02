@@ -1,0 +1,65 @@
+pipeline {
+    agent any
+    environment {
+        sonarHome = tool 'sonar-scanner'
+        owaspHome = tool 'DP-Check'
+        imageName = "frontend-${env.BUILD_ID}"
+        containerName = "frontend-${env.BUILD_ID}"
+        networkName = "frontend-${env.BUILD_ID}"
+    }
+    stages {
+        stage('git checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/sivaram-ops/roboshop-frontend.git'
+            }
+        }
+        stage('code analysis') {
+            parallel {
+                stage('sonarqube analysis') {
+                    steps {
+                        withSonarQubeEnv('sonarqube-server') {
+                            sh "${sonarHome}/bin/sonar-scanner -Dsonar.projectKey=roboshop-frontend -Dsonar.sources=."
+                        }
+                    }
+                }
+                stage('owasp analysis') {
+                    steps {
+                        sh "${owaspHome}/bin/dependency-check.sh --project roboshop-frontend --scan . --format ALL"
+                        dependencyCheckPublisher pattern: '**/dependency-check-report.xml', failedTotalHigh: 10, failedNewHigh: 2, unstableTotalCritical: 2, stopBuild: true
+                        archiveArtifacts artifacts: '**/dependency-check-report.*', allowEmptyArchive: true
+                    }
+                }
+            }
+        }
+        stage('sonar quality gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES'){
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+        stage('build container') {
+            steps {
+                script {
+                    sh "docker build -t ${imageName} ."
+                    sh "docker network create ${networkName}"
+                    sh "docker run -d --name backend-apps-${env.BUILD_ID} --network ${networkName} --network-alias catalogue --network-alias user --network-alias cart --network-alias shipping --network-alias payment alpine sleep 1d"
+                    sh "sleep 5"
+                    sh "docker run -d --name ${containerName} --network ${networkName} --network-alias frontend -p 80:80 ${imageName}"
+                    sh "docker run --rm --name curl-container --network ${networkName} curlimages/curl -f -v -I http://frontend:80"
+                    sh "docker run --rm --name curl-container --network ${networkName} curlimages/curl -f -v -I http://${containerName}:80"
+                }
+            }
+        }
+    }
+    post {
+        always {
+            sh "docker stop ${containerName} || true"
+            sh "docker rm ${containerName} || true"
+            sh "docker stop backend-apps-${env.BUILD_ID} || true"
+            sh "docker rm backend-apps-${env.BUILD_ID} || true"
+            sh "docker rmi ${imageName} || true"
+            sh "docker network rm ${networkName} || true"
+        }
+    }
+}

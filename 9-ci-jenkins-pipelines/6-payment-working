@@ -1,0 +1,114 @@
+pipeline {
+    agent any
+    environment {
+        service = "payment"
+        repoURL = "https://github.com/sivaram-ops/roboshop-payment.git"
+        imageName = "${service}:${env.BUILD_ID}"
+        containerName = "${service}-${env.BUILD_ID}"
+        networkName = "roboshop-${env.BUILD_ID}"
+        sonarHome = tool 'sonar-scanner'
+        owaspHome = tool 'DP-Check'
+    }
+    stages {
+        stage('git checkout') {
+            steps {
+                git branch: 'main', url: "${repoURL}"
+            }
+        }
+        stage('static code analysis') {
+            agent {
+                docker {
+                    image 'python:3.12-alpine'
+                    args '-u root'
+                    reuseNode true
+                }
+            }
+            steps {
+                sh "pip3 install flake8"
+                sh "flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics"
+            }
+        }
+        stage('unit tests') {
+            agent {
+                docker {
+                    image 'python:3.12-alpine'
+                    args '-u root'
+                    reuseNode true
+                }
+            }
+            steps {
+                sh "pip3 install pytest pytest-cov"
+                script {
+                    // Use shell to check directory existence inside the container
+                    def folderExists = sh(script: '[ -d "tests" ] && echo "yes" || echo "no"', returnStdout: true).trim()
+                    
+                    if (folderExists == 'yes') {
+                        sh "pytest --cov=app tests/ --junitxml=test-reports/results.xml"
+                    } else {
+                        echo "--- WARNING: 'tests/' directory not found. Skipping execution. ---"
+                        sh "mkdir -p test-reports && echo '<testsuites></testsuites>' > test-reports/results.xml"
+                    }
+                }
+            }
+            post {
+                always {
+                    junit 'test-reports/results.xml'
+                }
+            }
+        }
+        stage('sonar and owasp analysis') {
+            parallel {
+                stage('sonar analysis') {
+                    steps {
+                        withSonarQubeEnv('sonarqube-server') {
+                            sh "${sonarHome}/bin/sonar-scanner -Dsonar.projectName=${service} -Dsonar.projectKey=${service} -Dsonar.sources=. -Dsonar.language=py -Dsonar.python.version=3"
+                        }
+                    }
+                }
+                stage('owasp analysis') {
+                    steps {
+                        sh "${owaspHome}/bin/dependency-check.sh --project ${service} --scan . --format ALL --disableYarnAudit || true"
+                        dependencyCheckPublisher pattern: '**/dependency-check-report.xml', failedTotalHigh: 100, failedNewHigh: 100, unstableTotalCritical: 100, stopBuild: false
+                        archiveArtifacts artifacts: '**/dependency-check-report.*', allowEmptyArchive: true
+                    }
+                }
+            }
+        }
+        stage('quality gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        waitForQualityGate abortPipeline: true
+                    }
+                }
+            }
+        }
+        stage('build and test') {
+            steps {
+                script {
+                    sh "docker network create ${networkName}"
+                    sh "docker build -t ${imageName} ."
+                    sh "docker run -d --name rabbitmq --network ${networkName} -e RABBITMQ_DEFAULT_USER=roboshop -e RABBITMQ_DEFAULT_PASS=roboshop123 rabbitmq:3-management"
+                    sh "docker run -d --name ${containerName} --network ${networkName} -e CART_HOST=cart -e CART_PORT=8080 -e USER_HOST=user -e USER_PORT=8080 -e AMQP_HOST=rabbitmq -e AMQP_USER=roboshop -e AMQP_PASS=roboshop123 ${imageName}"
+                    timeout(time:3, unit:'MINUTES') {
+                        retry(5) {
+                            echo "Checking API health"
+                            sleep 10
+                            sh "docker run --rm --network ${networkName} curlimages/curl -s -f -v -I http://${containerName}:8080/health"
+                        }
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            sh "docker stop rabbitmq || true"
+            sh "docker rm rabbitmq || true"
+            sh "docker stop ${containerName} || true"
+            sh "docker rm ${containerName} || true"
+            sh "docker network rm ${networkName} || true"
+            sh "docker rmi ${imageName} || true"
+        }
+    }
+}
