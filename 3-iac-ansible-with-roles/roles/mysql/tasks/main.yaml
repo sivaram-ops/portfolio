@@ -1,0 +1,59 @@
+- name: Adding repo for mysql 5.7.
+  dnf:
+    name: https://repo.mysql.com//mysql57-community-release-el7-11.noarch.rpm
+    state: present
+    disable_gpg_check: true
+
+- name: Installing mysql-server and pip.
+  dnf:
+    name:
+    - mysql-community-server
+    - python3-pip
+    state: present
+    enablerepo: mysql57-community
+    disable_gpg_check: true
+
+- name: Installing PyMySQL with pip.
+  pip:
+    name: PyMySQL
+    state: present
+
+- name: Enabling and starting mysql database.
+  systemd:
+    name: mysqld
+    state: started
+    enabled: true
+
+- name: Checking whether if root password is already set.
+  command: "mysql -u root -p'{{ mysql_root_pw }}' -e 'SELECT 1;'"
+  register: pw_check
+  failed_when: false   # or 'ignore_errors: true'
+  changed_when: false
+  no_log: true
+
+- name: Configuring root password. (initial setup)
+  block:
+    - name: Getting temporary password.
+      shell: grep 'temporary password' /var/log/mysqld.log | awk '{print $NF}' | tail -1
+      register: temp_pw
+
+    - name: Setting permanenet password.
+      shell: |
+        mysql --connect-expired-password -u root -p'{{ temp_pw.stdout }}' \
+        -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '{{ mysql_root_pw }}'; UNINSTALL PLUGIN validate_password;"
+  when: pw_check.rc != 0
+
+- name: Copying mysql schema.
+  copy:
+    src: "{{ playbook_dir }}/source-code/mysql/shipping.sql"
+    dest: /tmp/shipping.sql
+  register: mysql_schema
+
+- name: Importing schame to mysql.
+  mysql_db:
+    login_user: root
+    login_password: "{{ mysql_root_pw }}"
+    state: import
+    target: /tmp/shipping.sql
+    name: cities
+  when: mysql_schema.changed

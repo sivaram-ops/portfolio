@@ -1,0 +1,53 @@
+- name: Add RabbitMQ Erlang Repository
+  yum_repository:
+    name: rabbitmq_erlang
+    description: "RabbitMQ Erlang Repository"
+    baseurl: "https://packagecloud.io/rabbitmq/erlang/el/9/$basearch"
+    gpgcheck: no
+
+- name: Add RabbitMQ Server Repository
+  yum_repository:
+    name: rabbitmq_server
+    description: "RabbitMQ Server Repository"
+    baseurl: "https://packagecloud.io/rabbitmq/rabbitmq-server/el/9/$basearch"
+    gpgcheck: no
+
+- name: Import RabbitMQ GPG keys
+  rpm_key:
+    key: "{{ item }}"
+    state: present
+  loop:
+    - https://packagecloud.io/rabbitmq/erlang/gpgkey
+    - https://packagecloud.io/rabbitmq/rabbitmq-server/gpgkey
+
+- name: Installing prerequisities and rabbitmq-server.
+  dnf:
+    name:
+    - socat
+    - logrotate
+    - erlang
+    - rabbitmq-server
+    state: present
+
+- name: Enabling and starting rabbitmq-server.
+  systemd:
+    name: rabbitmq-server
+    state: started
+    enabled: true
+
+- name: Enabling rabbitmq management plugin.
+  rabbitmq_plugin:
+    names: rabbitmq_management
+    state: enabled
+  notify: restarting rabbitmq-server
+
+- name: Configuring rabbitmq application user.
+  rabbitmq_user:
+    user: roboshop
+    password: roboshop123
+    vhost: /
+    configure_priv: .*
+    read_priv: .*
+    write_priv: .*
+    tags: administrator
+    state: present

@@ -1,7 +1,0 @@
----
-# vars file for mongodb
-mongodb_version: "7.0"
-schema_repo_url: "https://github.com/rshaik4devops/mongodb/archive/main.zip"
-schema_extract_dir: "/tmp/mongodb-main"
-flag_path_catalogue: "/tmp/.catalogue_data_loaded"
-flag_path_user: "/tmp/.user_data_loaded"

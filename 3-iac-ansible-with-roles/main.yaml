@@ -1,0 +1,74 @@
+- name: Deploying roboshop microservices
+  hosts: role_roboshop
+  become: true
+
+  tasks:
+  - name: 1. Deploying Mongodb.
+    include_role:
+      name: mongodb
+    vars:
+      mongodb_version: "7.0"
+  
+  - name: 2. Deploying Redis.
+    include_role:
+      name: redis
+  
+  - name: 3. Deploying MySQL 5.7.
+    include_role:
+      name: mysql
+    vars:
+      mysql_root_pw: "RoboShop@1"
+
+  - name: 4. Deploying RabbitMQ,
+    include_role:
+      name: rabbitmq
+  
+  - name: Creating an user (roboshop) for backend applications.
+    user:
+      name: roboshop
+      state: present
+      create_home: true
+
+  - name: Setting ownership for of 'roboshop' directory to 'roboshop' user. (Due to a bug)
+    file:
+      path: /home/roboshop
+      state: directory
+      owner: roboshop
+      group: roboshop
+      recurse: true
+
+  - name: 5. Deploying Catalogue app.
+    include_role:
+      name: nodejs-app
+    vars:
+      microservice: catalogue
+  
+  - name: 6. Deploying User app.
+    include_role:
+      name: nodejs-app
+    vars:
+      microservice: user
+  
+  - name: 7. Deploying Cart app.
+    include_role:
+      name: nodejs-app
+    vars:
+      microservice: cart
+  
+  - name: 8. Deploying Shipping app.
+    include_role:
+      name: shipping-app
+    vars:
+      microservice: shipping
+  
+  - name: 9. Deploying payment app.
+    include_role:
+      name: payment-app
+    vars:
+      microservice: payment
+  
+  - name: 10. Deploying frontend app.
+    include_role:
+      name: frontend
+    vars:
+      microservice: frontend

@@ -1,0 +1,36 @@
+- name: Installing nodejs and prerequisities.
+  dnf:
+    name:
+    - nodejs
+    - make
+    - gcc-c++
+    state: present
+
+- name: Copying srouce code of {{ microservice }} application.
+  copy:
+    src: "{{ playbook_dir }}/source-code/{{ microservice }}/app-code/"
+    dest: "/home/roboshop/{{ microservice }}"
+    owner: roboshop
+    group: roboshop
+    mode: '644'
+    directory_mode: '0755'
+
+- name: Installing dependencies required for {{ microservice }} app.
+  become: true
+  become_user: roboshop
+  npm:
+    path: "/home/roboshop/{{ microservice }}"
+  notify: restarting {{ microservice }} application
+
+- name: Copying configuration file of {{ microservice }} app.
+  copy:
+    src: "{{ playbook_dir }}/source-code/{{ microservice }}/systemd.service"
+    dest: /etc/systemd/system/{{ microservice }}.service
+  notify: restarting {{ microservice }} application
+
+- name: Enabling and Starting the {{ microservice }} application.
+  systemd:
+    name: "{{ microservice }}"
+    state: started
+    enabled: true
+    daemon_reload: true

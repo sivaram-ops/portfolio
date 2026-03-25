@@ -1,0 +1,5 @@
+- name: Restart Payment App
+  systemd:
+    name: "{{ microservice }}"
+    state: restarted
+    daemon_reload: true

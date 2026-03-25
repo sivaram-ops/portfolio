@@ -1,7 +1,0 @@
----
-# handlers file for redis
-- name: restarting redis
-  systemd:
-    name: redis6
-    state: restarted
-    daemon_reload: true

@@ -1,0 +1,52 @@
+  - name: Adding repository.
+    yum_repository:
+      name: mongodb-org-{{ mongodb_version }}
+      description: mongodb repository
+      baseurl: https://repo.mongodb.org/yum/amazon/2023/mongodb-org/{{ mongodb_version }}/x86_64/
+      gpgcheck: true
+      gpgkey: https://www.mongodb.org/static/pgp/server-{{ mongodb_version }}.asc
+      repo_gpgcheck: true
+      enabled: true
+
+  - name: Installing mongodb server and mongosh.
+    dnf:
+      name:
+      - mongodb-org
+      - mongodb-mongosh-shared-openssl3.x86_64
+      state: present
+
+  - name: Updating mongodb's configuration file.
+    replace:
+      path: /etc/mongod.conf
+      regexp: '127\.0\.0\.1'
+      replace: '0.0.0.0'
+
+  - name: Enabling and Starting mongodb.
+    systemd:
+      name: mongod
+      state: started
+      enabled: true
+
+  - name: Copying schema files to server.
+    copy:
+      src: "{{ playbook_dir }}/source-code/mongodb/"
+      dest: /home/roboshop/mongodb/
+    register: mongodb_schema
+
+  - name: Removing the schema check flags if schema is changed. Or skipping.
+    file:
+      path: /tmp/.{{item}}_loaded
+      state: absent
+    loop:
+    - catalogue
+    - users
+    when: mongodb_schema.changed
+
+  - name: Loading schema to mongodb database.
+    shell: "mongosh < {{ item }}.js && touch /tmp/.{{ item }}_loaded"
+    args:
+      chdir: /home/roboshop/mongodb
+      creates: "/tmp/.{{ item }}_loaded"
+    loop:
+    - catalogue
+    - users

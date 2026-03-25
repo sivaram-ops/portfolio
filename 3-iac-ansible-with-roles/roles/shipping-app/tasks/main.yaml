@@ -1,0 +1,48 @@
+- name: Installing maven and prereqisities.
+  dnf:
+    name: maven
+    state: present
+
+- name: Copying source code for {{ microservice }} application.
+  copy:
+    src: "{{ playbook_dir }}/source-code/{{ microservice }}/app-code/"
+    dest: "/home/roboshop/{{ microservice }}"
+    owner: roboshop
+    group: roboshop
+    mode: '0644'
+    directory_mode: '0755'
+  register: java_app_code
+
+- name: Installing dependencies required for {{ microservice }} app.
+  become: true
+  become_user: roboshop
+  # become_flags: '-i'
+  command: "mvn clean package"
+  args:
+    chdir: "/home/roboshop/{{ microservice }}"
+    creates: "/home/roboshop/{{ microservice }}/target/shipping-1.0.jar"
+  when: java_app_code.changed
+
+- name: Copying artifact to project directory.
+  become: true
+  copy:
+    src: "/home/roboshop/{{ microservice }}/target/shipping-1.0.jar"
+    dest: "/home/roboshop/{{ microservice }}/shipping.jar"
+    remote_src: true
+    owner: roboshop
+    group: roboshop
+  notify: restarting {{ microservice }} application
+
+- name: Copying configuration file of {{ microservice }} application.
+  copy:
+    src: "{{ playbook_dir }}/source-code/{{ microservice }}/systemd.service"
+    dest: "/etc/systemd/system/{{ microservice }}.service"
+    mode: '0644'
+  notify: restarting {{ microservice }} application
+
+- name: Enabling and Starting {{ microservice }} application.
+  systemd:
+    name: "{{ microservice }}"
+    state: started
+    enabled: true
+    daemon_reload: true

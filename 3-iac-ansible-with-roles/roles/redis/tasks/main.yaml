@@ -1,0 +1,18 @@
+- name: Installing redis6.
+  dnf:
+    name: redis6
+    state: present
+    update_cache: true
+
+- name: Configuring redis6.
+  replace:
+    path: /etc/redis6/redis6.conf
+    regexp: '^bind 127\.0\.0\.1'
+    replace: 'bind 0.0.0.0'
+  notify: restarting redis database
+
+- name: Enabling and starting redis6 database.
+  systemd:
+    name: redis6
+    state: started
+    enabled: true

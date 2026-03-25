@@ -1,9 +1,0 @@
----
-# vars file for mysql
-mysql_repo_pkg_url: "https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm"
-mysql_repo_gpg_key_url: "https://repo.mysql.com/RPM-GPG-KEY-mysql-2022"
-mysql_root_password: "RoboShop@1"
-schema_zip_url: "https://github.com/rshaik4devops/mysql/archive/main.zip"
-schema_workdir: "/tmp"
-schema_dir_name: "mysql-main"   # Directory created by the zip
-schema_file: "shipping.sql"

@@ -1,0 +1,21 @@
+[Unit]
+Description=Shipping Service
+
+[Service]
+User=roboshop
+
+Environment=CART_ENDPOINT=localhost:8083
+Environment=CART_HOST=localhost
+Environment=CART_PORT=8083
+Environment=DB_HOST=localhost
+Environment=DB_PORT=3306
+Environment=DB_NAME=cities
+Environment=DB_USER=shipping
+Environment=DB_PASSWORD=RoboShop@1
+Environment=DB_ROOT_PASSWORD=RoboShop@1
+
+ExecStart=/bin/java -jar /home/roboshop/shipping/shipping.jar
+SyslogIdentifier=shipping
+
+[Install]
+WantedBy=multi-user.target

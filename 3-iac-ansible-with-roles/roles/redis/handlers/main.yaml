@@ -1,0 +1,5 @@
+- name: restarting redis database
+  systemd:
+    name: redis6
+    state: restarted
+    daemon_reload: true

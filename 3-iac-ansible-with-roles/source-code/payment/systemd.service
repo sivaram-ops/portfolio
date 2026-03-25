@@ -1,0 +1,21 @@
+[Unit]
+Description=Payment Service
+
+[Service]
+User=roboshop
+WorkingDirectory=/home/roboshop/payment
+
+Environment=CART_HOST=localhost
+Environment=CART_PORT=8083
+Environment=USER_HOST=localhost
+Environment=USER_PORT=8082
+Environment=AMQP_HOST=localhost
+Environment=AMQP_USER=roboshop
+Environment=AMQP_PASS=roboshop123
+
+ExecStart=/usr/local/bin/uwsgi --ini payment.ini
+# REMOVED ExecStop - Let systemd handle the stop gracefully
+SyslogIdentifier=payment
+
+[Install]
+WantedBy=multi-user.target

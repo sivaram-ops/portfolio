@@ -1,4 +1,0 @@
----
-# vars file for cart
-redis_host_ip: "10.0.1.86"
-catalogue_host_ip: "10.0.1.214"

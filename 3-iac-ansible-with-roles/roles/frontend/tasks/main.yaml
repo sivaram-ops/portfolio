@@ -1,0 +1,27 @@
+- name: Installing nginx.
+  dnf:
+    name: nginx
+    state: present
+
+- name: Enabling and starting nginx.
+  systemd:
+    name: nginx
+    state: started
+    enabled: true
+    daemon_reload: true
+
+- name: Copying frontend files to nginx.
+  synchronize:
+    src: "{{ playbook_dir }}/source-code/{{ microservice }}/app-code/"
+    dest: /usr/share/nginx/html
+    delete: true
+    recursive: true
+    rsync_opts:
+    - "--chown=nginx:nginx"
+    - "--chmod=D755,F644"
+
+- name: Copying nginx's configuration file.
+  copy:
+    src: "{{ playbook_dir }}/source-code/{{ microservice }}/roboshop.conf"
+    dest: /etc/nginx/nginx.conf
+  notify: restarting nginx application

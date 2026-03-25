@@ -1,0 +1,5 @@
+- name: restarting nginx application
+  systemd:
+    name: nginx
+    state: restarted
+    daemon_reload: true
