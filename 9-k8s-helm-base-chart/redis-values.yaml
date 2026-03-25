@@ -1,0 +1,81 @@
+isStatefulSet: true
+
+nodeName: "k3d-roboshop26feb-agent-2"
+
+hostPath: "/database-data/redis/"
+
+replicaCount: 1
+
+image:
+  repository: sivaram0101/redis-roboshop
+  tag: "v11"
+
+podSecurityContext:
+  runAsNonRoot: false
+  runAsUser: 999
+  runAsGroup: 999
+  fsGroup: 999
+
+service:
+  port: 6379
+  targetPort: 6379
+
+startupProbe: null
+
+readinessProbe:
+  tcpSocket: null
+  exec:
+    command: ["redis-cli", "ping"]
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+
+livenessProbe:
+  tcpSocket: null
+  exec:
+    command: ["redis-cli", "ping"]
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+
+initContainers:
+  - name: fix-permissions
+    image: busybox
+    command: ["sh", "-c", "chown -R 999:999 /data"]
+    volumeMounts:
+      - name: redis-data
+        mountPath: /data
+    securityContext:
+      runAsUser: 0
+
+volumeMounts:
+  - name: redis-data
+    mountPath: /data
+  - name: config
+    mountPath: /usr/local/etc/redis/redis.conf
+    subPath: redis.conf
+
+volumeClaimTemplates:
+  - metadata:
+      name: redis-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: sc-hostpath
+      resources:
+        requests:
+          storage: 1Gi
+
+volumes:
+  - name: config
+    configMap:
+      name: redis-config
+
+configMap:
+  enabled: true
+  data:
+    redis.conf: |
+      appendonly yes
+      maxmemory 400mb
+      maxmemory-policy allkeys-lru
+
+command: ["redis-server", "/usr/local/etc/redis/redis.conf"]

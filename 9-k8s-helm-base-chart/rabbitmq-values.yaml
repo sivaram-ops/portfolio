@@ -1,0 +1,73 @@
+isStatefulSet: true
+
+nodeName: "k3d-roboshop26feb-agent-0"
+
+hostPath: "/database-data/rabbitmq/"
+
+replicaCount: 1
+
+image:
+  repository: sivaram0101/rabbitmq-roboshop
+  tag: "v11"
+
+podSecurityContext:
+  runAsNonRoot: false
+  runAsUser: 999
+  runAsGroup: 999
+  fsGroup: 999
+
+service:
+  port: 5672
+  targetPort: 5672
+
+startupProbe:
+  tcpSocket:
+    port: 5672
+  initialDelaySeconds: 10
+  failureThreshold: 12
+
+readinessProbe:
+  tcpSocket:
+    port: 5672
+  initialDelaySeconds: 30
+
+livenessProbe:
+  tcpSocket:
+    port: 5672
+  initialDelaySeconds: 30
+
+initContainers:
+  - name: fix-permissions
+    image: busybox
+    command: ["sh", "-c", "chown -R 999:999 /var/lib/rabbitmq"]
+    volumeMounts:
+      - name: rabbitmq-data
+        mountPath: /var/lib/rabbitmq
+    securityContext:
+      runAsUser: 0
+
+volumeMounts:
+  - name: rabbitmq-data
+    mountPath: /var/lib/rabbitmq
+
+volumeClaimTemplates:
+  - metadata:
+      name: rabbitmq-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: sc-hostpath
+      resources:
+        requests:
+          storage: 2Gi
+
+# volumes
+
+secret:
+  enabled: true
+  data:
+    RABBITMQ_DEFAULT_USER: "roboshop"
+    RABBITMQ_DEFAULT_PASS: "roboshop123"
+
+envFrom:
+  - secretRef:
+      name: rabbitmq-secret

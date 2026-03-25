@@ -1,0 +1,26 @@
+{{- if .Values.isStatefulSet }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Release.Name }}-pv
+spec:
+  capacity:
+    storage: {{ index .Values.volumeClaimTemplates 0 "spec" "resources" "requests" "storage" | default "1Gi" }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: sc-hostpath
+  claimRef:                                       # ADD THIS BLOCK
+    name: {{ index .Values.volumeClaimTemplates 0 "metadata" "name" }}-{{ .Release.Name }}-0
+    namespace: {{ .Release.Namespace }}
+  hostPath:
+    path: {{ .Values.hostPath | default (printf "/data/%s" .Release.Name) }}
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - {{ .Values.nodeName | default "k3d-roboshop26feb-agent-0" }}
+{{- end }}

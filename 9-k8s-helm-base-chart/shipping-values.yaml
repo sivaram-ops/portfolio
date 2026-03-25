@@ -1,0 +1,52 @@
+image:
+  repository: sivaram0101/shipping-roboshop
+  tag: "v11"
+
+service:
+  port: 8080
+  targetPort: 8080
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+# Java requires a writable /tmp directory to decompress its JAR files
+volumeMounts:
+  - name: tmp-volume
+    mountPath: /tmp
+
+volumes:
+  - name: tmp-volume
+    emptyDir: {}
+
+configMap:
+  enabled: true
+  data:
+    CART_HOST: "cart"
+    CART_PORT: "8080"
+    CART_ENDPOINT: "cart:8080"
+    DB_HOST: "mysql"
+    DB_NAME: "cities"
+
+secret:
+  enabled: true
+  data:
+    DB_USER: "shipping"
+    DB_PASSWORD: "RoboShop@1"
+    DB_ROOT_PASSWORD: "RoboShop@1"
+
+envFrom:
+  - configMapRef:
+      name: shipping-config
+  - secretRef:
+      name: shipping-secret
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 250Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi

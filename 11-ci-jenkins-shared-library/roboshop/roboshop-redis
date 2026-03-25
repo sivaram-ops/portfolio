@@ -1,0 +1,2 @@
+@Library('jenkins-shared-library') _
+stanEcommercePipeline(serviceName: 'redis', language: 'docker-only', repoUrl: 'https://github.com/sivaram-ops/roboshop-redis.git')

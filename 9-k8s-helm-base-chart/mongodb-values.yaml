@@ -1,0 +1,71 @@
+isStatefulSet: true
+
+nodeName: "k3d-roboshop26feb-agent-0"
+
+hostPath: "/database-data/mongodb/"
+
+replicaCount: 1
+
+image:
+  repository: sivaram0101/mongodb-roboshop
+  tag: "v11"
+
+podSecurityContext:
+  runAsNonRoot: false
+  runAsUser: 999
+  runAsGroup: 999
+  fsGroup: 999
+
+service:
+  port: 27017
+  targetPort: 27017
+
+startupProbe:
+  tcpSocket: null
+  exec:
+    command: ["mongosh", "--eval", "db.adminCommand('ping')"]
+  initialDelaySeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 30
+
+readinessProbe:
+  tcpSocket: null
+  exec:
+    command: ["mongosh", "--eval", "db.adminCommand('ping')"]
+  timeoutSeconds: 5
+
+livenessProbe:
+  tcpSocket: null
+  exec:
+    command: ["mongosh", "--eval", "db.adminCommand('ping')"]
+  timeoutSeconds: 5
+
+initContainers:
+  - name: fix-permissions
+    image: busybox
+    command: ["sh", "-c", "chown -R 999:999 /data/db"]
+    volumeMounts:
+      - name: mongodb-data
+        mountPath: /data/db
+    securityContext:
+      runAsUser: 0
+
+volumeMounts:
+  - name: mongodb-data
+    mountPath: /data/db
+
+volumeClaimTemplates:
+  - metadata:
+      name: mongodb-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: sc-hostpath
+      resources:
+        requests:
+          storage: 1Gi
+
+# volumes
+
+resources:
+  requests: { cpu: 200m, memory: 256Mi }
+  limits: { cpu: 500m, memory: 512Mi }

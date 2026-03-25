@@ -1,0 +1,36 @@
+image:
+  repository: sivaram0101/payment-roboshop
+  tag: "v11"
+
+service:
+  port: 8080
+  targetPort: 8080
+
+configMap:
+  enabled: true
+  data:
+    CART_HOST: "cart"
+    CART_PORT: "8080"
+    USER_HOST: "user"
+    USER_PORT: "8080" # <-- ADDED
+    AMQP_HOST: "rabbitmq"
+    AMQP_USER: "roboshop"
+
+secret:
+  enabled: true
+  data:
+    AMQP_PASS: "roboshop123"
+
+envFrom:
+  - configMapRef:
+      name: payment-config
+  - secretRef:
+      name: payment-secret
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 200Mi
+  limits:
+    cpu: 500m
+    memory: 500Mi

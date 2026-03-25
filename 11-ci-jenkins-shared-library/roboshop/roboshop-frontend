@@ -1,0 +1,2 @@
+@Library('jenkins-shared-library') _
+stanEcommercePipeline(serviceName: 'frontend', language: 'nginx', repoUrl: 'https://github.com/sivaram-ops/roboshop-frontend.git')

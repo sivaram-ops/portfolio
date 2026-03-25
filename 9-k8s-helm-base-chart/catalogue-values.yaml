@@ -1,0 +1,16 @@
+image:
+  repository: sivaram0101/catalogue-roboshop
+  tag: "v11"
+
+service:
+  port: 8080
+  targetPort: 8080
+
+env:
+  - name: MONGO
+    value: "true"
+  - name: MONGO_URL
+    value: "mongodb://mongodb:27017/catalogue"
+  - name: CATALOGUE_SERVER_PORT
+    value: "8080"
+

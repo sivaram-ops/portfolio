@@ -1,0 +1,16 @@
+image:
+  repository: sivaram0101/user-roboshop
+  tag: "v11"
+
+service:
+  port: 8080
+  targetPort: 8080
+
+env:
+  - name: MONGO
+    value: "true"
+  - name: MONGO_URL
+    value: "mongodb://mongodb:27017/users"
+  - name: REDIS_HOST
+    value: "redis"
+

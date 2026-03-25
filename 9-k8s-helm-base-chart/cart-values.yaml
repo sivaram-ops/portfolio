@@ -1,0 +1,10 @@
+image: { repository: sivaram0101/cart-roboshop, tag: "v11" }
+
+service:
+  port: 8080
+  targetPort: 8080
+
+env:
+  - { name: REDIS_HOST, value: "redis" }
+  - { name: CATALOGUE_HOST, value: "catalogue" }
+  - { name: CATALOGUE_PORT, value: "8080" }

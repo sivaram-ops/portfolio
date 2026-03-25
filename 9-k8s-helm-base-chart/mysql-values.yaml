@@ -1,0 +1,109 @@
+isStatefulSet: true
+
+nodeName: "k3d-roboshop26feb-agent-1"
+
+hostPath: "/database-data/mysql/"
+
+replicaCount: 1
+
+image:
+  repository: sivaram0101/mysql-roboshop
+  tag: "v11"
+
+podSecurityContext:
+  runAsNonRoot: false
+  runAsUser: 999
+  runAsGroup: 999
+  fsGroup: 999
+
+service:
+  port: 3306
+  targetPort: 3306
+
+startupProbe:
+  tcpSocket: null
+  exec:
+    command: ["sh", "-c", "mysqladmin ping -uroot -p${MYSQL_ROOT_PASSWORD}"]
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  failureThreshold: 30
+  timeoutSeconds: 5
+
+readinessProbe:
+  tcpSocket: null
+  exec:
+    command: ["sh", "-c", "mysqladmin ping -uroot -p${MYSQL_ROOT_PASSWORD}"]
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 5
+
+# Added 'sh -c' to properly evaluate the password variable.
+livenessProbe:
+  tcpSocket: null
+  exec:
+    command: ["sh", "-c", "mysqladmin ping -uroot -p${MYSQL_ROOT_PASSWORD}"]
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+
+initContainers:
+  - name: fix-permissions
+    image: busybox
+    command: ["sh", "-c", "chown -R 999:999 /var/lib/mysql"]
+    volumeMounts:
+      - name: mysql-data
+        mountPath: /var/lib/mysql
+    securityContext:
+      runAsUser: 0
+
+volumeMounts:
+  - name: mysql-data
+    mountPath: /var/lib/mysql
+
+volumeClaimTemplates:
+  - metadata:
+      name: mysql-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: sc-hostpath
+      resources:
+        requests:
+          storage: 1Gi
+
+# volumes
+
+configMap:
+  enabled: true
+  data:
+    MYSQL_DATABASE: "cities"
+    MYSQL_USER: "shipping"
+
+secret:
+  enabled: true
+  data:
+    mysql-root-password: "RoboShop@1"
+    mysql-password: "RoboShop@1"
+
+env:
+  - name: MYSQL_ROOT_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: mysql-secret
+        key: mysql-root-password
+  - name: MYSQL_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: mysql-secret
+        key: mysql-password
+
+envFrom:
+  - configMapRef:
+      name: mysql-config
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
