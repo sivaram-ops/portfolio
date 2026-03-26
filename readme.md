@@ -49,7 +49,7 @@ To quickly deploy all 10 microservices locally using Docker Compose:
 
 1. **Clone this repository:**
    ```bash
-   git clone [https://github.com/sivaram-ops/Microservices-Delivery-Practices.git](https://github.com/sivaram-ops/Microservices-Delivery-Practices.git)
+   git clone https://github.com/sivaram-ops/Microservices-Delivery-Practices.git
    cd Microservices-Delivery-Practices/4-containerization
    ```
 
