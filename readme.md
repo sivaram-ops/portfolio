@@ -1,81 +1,46 @@
-# Roboshop: Microservices Delivery Practices & DevOps Portfolio
+# Roboshop: Microservices Deployment and CI/CD
 
-## Overview
+[cite_start]This repository contains configuration files, scripts, and deployment manifests for Roboshop, a 3-tier e-commerce application consisting of 10 microservices[cite: 28, 35]. [cite_start]The project demonstrates the progression of deployment methods from configuration management to container orchestration and automated CI/CD pipelines[cite: 31].
 
-This repository serves as my complete DevOps portfolio, detailing the journey of implementing Continuous Delivery Practices for a complex, 10-microservice, 3-tier e-commerce application known as **Roboshop**. 
+## Application Architecture
 
-The objective of this project is to document the transformation of a complex environment from a manual, configuration-heavy setup to a modern, automated, and containerized deployment using Infrastructure as Code (IaC) and Container Orchestration. The application itself utilizes a variety of technologies including Nginx, Node.js, Java, Python, and several databases (MongoDB, MySQL, Redis, RabbitMQ).
-
-## Evolution of Delivery Systems
-
-This project demonstrates a complete DevOps toolchain, documenting the evolution of software delivery practices:
-
-**Foundational (Manual) → Automation (Ansible) → Containerization (Docker) → Orchestration (K8s) → Continuous Integration/Delivery (CI/CD)**
-
-| Core Discipline | Key Technologies Covered | Architectural Focus |
-| :--- | :--- | :--- |
-| **Continuous Delivery** | Docker, Kubernetes, Jenkins, ArgoCD | Microservices Architecture, 3-Tier Design |
-| **Automation Engineering** | Ansible, Configuration Management | Scalability and Reliability |
-| **Infrastructure Engineering**| Terraform, Kubeadm, AWS | Cloud Provisioning and Management |
-
-## ⚙️ Architecture: 3-Tier (Frontend, Backend, Databases)
-
-The Roboshop platform is composed of 10 distinct microservices serving distinct functions:
-* **Frontend**: Nginx-based UI.
-* **Backend Services**: Catalogue, User, Cart, Shipping, Payment.
-* **Databases/Message Brokers**: MongoDB, Redis, MySQL, RabbitMQ.
+[cite_start]The application follows a standard 3-tier architecture[cite: 35]:
+* [cite_start]**Frontend:** Nginx [cite: 35]
+* [cite_start]**Backend Services:** Catalogue, User, Cart, Shipping, Payment [cite: 36]
+* [cite_start]**Databases & Brokers:** MongoDB, MySQL, Redis, RabbitMQ [cite: 36]
 
 ![3-tier architecture of roboshop](https://github.com/sivaram-ops/roboshop-3tier-microservices/blob/911ce7b9b98c183618bff020afa4105f07f74a62/assets/3-tier-microservices.png)
 
 ## Repository Structure
 
-The repository is logically divided into numbered directories following the DevOps lifecycle:
+The repository is organized into directories representing different deployment stages and practices:
 
-* **`1-roboshop-source-code/`**: Contains the complete application source code for all 10 microservices (Node.js, Python, Java, etc.).
-* **`2-iac-ansible-with-roles/`**: Ansible playbooks and roles designed to automate the configuration and deployment of each microservice onto VMs.
-* **`3-iac-terraform/`**: Terraform scripts to provision cloud infrastructure (AWS EC2, VPC, etc.).
-* **`4-containerization/`**: Highly optimized, multi-stage Dockerfiles for all microservices, along with a `docker-compose.yaml` file for local orchestration.
-* **`5-k8s-kubeadm-cluster-setup/`**: Documentation and steps to bootstrap a Kubernetes cluster using Kubeadm (with containerd/docker runtimes).
-* **`6-k8s-roboshop/`**: Kubernetes deployment files including raw manifests, Helm charts, and a Helm base chart.
-* **`7-ci-jenkins-pipelines/`**: Declarative Jenkinsfiles for implementing Continuous Integration for the microservices.
-* **`8-ci-jenkins-shared-library/`**: Groovy-based Jenkins shared library for managing reusable pipeline code.
-* **`9-cd-k8s-argocd-controller/`**: ArgoCD ApplicationSet and GitOps workflow configurations for Continuous Delivery.
+* [cite_start]**`2-iac-ansible-with-roles/`**: Ansible playbooks and roles for configuring and deploying the microservices on VMs[cite: 38].
+* [cite_start]**`3-iac-terraform/`**: Terraform scripts for provisioning AWS infrastructure (VPC, Subnets, EC2)[cite: 39].
+* [cite_start]**`4-containerization/`**: Dockerfiles for all microservices and a `docker-compose.yaml` file for local deployment[cite: 40].
+* [cite_start]**`5-k8s-kubeadm-cluster-setup/`**: Documentation and commands for bootstrapping a Kubernetes cluster using Kubeadm, covering both containerd and Docker runtimes[cite: 41].
+* [cite_start]**`6-k8s-roboshop/`**: Kubernetes deployment resources, including raw YAML manifests, standard Helm charts, and a reusable Helm base chart[cite: 42].
+* [cite_start]**`7-ci-jenkins-pipelines/`**: Declarative Jenkinsfiles for continuous integration[cite: 43].
+* [cite_start]**`8-ci-jenkins-shared-library/`**: A Groovy-based Jenkins shared library to manage reusable pipeline code across the applications[cite: 44].
+* [cite_start]**`9-cd-k8s-argocd-controller/`**: ArgoCD ApplicationSet configurations for GitOps-based continuous delivery to the Kubernetes cluster[cite: 45].
 
-## Running the Application (Local Deployment)
+## Local Deployment (Docker Compose)
 
-To quickly deploy all 10 microservices locally using Docker Compose:
+[cite_start]You can run the entire application stack locally using Docker Compose[cite: 46]. [cite_start]Ensure Docker and Docker Compose are installed on your machine[cite: 46].
 
-**Prerequisites:** Docker and Docker Compose installed.
-
-1. **Clone this repository:**
+1. [cite_start]**Clone the repository and navigate to the containerization directory**:
    ```bash
    git clone https://github.com/sivaram-ops/Microservices-Delivery-Practices.git
    cd Microservices-Delivery-Practices/4-containerization
    ```
 
-2. **Build images and start the services:**
-    ```bash
+2. Build the images and start the services:
+    ```Bash
     docker compose up --build -d
     ```
 
-3. **Check the status of the containers:**
-
-    ```
-    Bash
+3. Verify the containers are running:
+    ```Bash
     docker compose ps
     ```
-
-The application will be accessible via your Docker host IP on port 80.
-
-
-### Next Steps & Roadmap:
-
-My current focus is on expanding the repository and finalizing the full CI/CD loop and infrastructure automation:
-
-- Continuous Delivery (CI/CD): Finalizing the Jenkins pipelines to automate the build-test-deploy sequence, pushing to a Private registry, and syncing with ArgoCD.
-
-- Full IaaS with Terraform: Implementing robust Terraform code to provision the entire required AWS infrastructure (VPC, EKS Cluster, etc.).
-
-- Monitoring & Observability: Integrating Prometheus and Grafana for comprehensive monitoring of microservice health, logs, and performance.
-
-- Advanced K8s Features: Expanding the Kubernetes setup with advanced Ingress Controllers and stricter Network Policies.
+The application frontend will be accessible via your localhost IP on port 80.
