@@ -1,6 +1,3 @@
-
----
-
 # Kubeadm cluster with ContainerD as CRI:
 
 
