@@ -15,6 +15,7 @@ The application follows a standard 3-tier architecture:
 
 The repository is organized into directories representing different deployment stages and practices:
 
+* **`1-roboshop-source-code/`**: Source code of 10 microservices. 
 * **`2-iac-ansible-with-roles/`**: Ansible playbooks and roles for configuring and deploying the microservices on VMs.
 * **`3-iac-terraform/`**: Terraform scripts for provisioning AWS infrastructure (VPC, Subnets, EC2).
 * **`4-containerization/`**: Dockerfiles for all microservices and a `docker-compose.yaml` file for local deployment.
