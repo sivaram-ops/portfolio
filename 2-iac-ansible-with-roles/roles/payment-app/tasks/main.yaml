@@ -2,9 +2,9 @@
   dnf:
     name:
     - python3
-    - gcc
     - python3-devel
     - python3-pip
+    - gcc
     state: present
 
 - name: Copying Application Source Code
@@ -15,20 +15,20 @@
     group: roboshop
     mode: '0644'
     directory_mode: '0755'
-  notify: Restart Payment App
+  notify: Restart {{ microservice }} App
 
 - name: Installing Dependencies
   pip:
-    requirements: "/home/roboshop/payment/requirements.txt"
+    requirements: "/home/roboshop/{{ microservice }}/requirements.txt"
     executable: pip3
-  notify: Restart Payment App
+  notify: Restart {{ microservice }} App
 
 - name: Copying Systemd Service File.
   copy:
     src: "{{ playbook_dir }}/source-code/{{ microservice }}/systemd.service"
     dest: "/etc/systemd/system/{{ microservice }}.service"
     mode: '0644'
-  notify: Restart Payment App
+  notify: Restart {{ microservice }} App
 
 - name: Enabling and starting {{  microservice }} application.
   systemd:

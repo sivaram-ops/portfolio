@@ -1,6 +1,6 @@
 - name: Installing redis6.
   dnf:
-    name: redis6
+    name: redis6 # on aws it's redis6
     state: present
     update_cache: true
 
