@@ -1,6 +1,8 @@
 FROM redis:7.2-alpine
-LABEL maintainer="SIVARAM" component="redis microservice"
-RUN mkdir -p /data && chown redis:redis /data
+LABEL org.opencontainers.image.title="roboshop-redis" \
+      org.opencontainers.image.description="Redis database as microservice for RoboShop" \
+      org.opencontainers.image.version="v9" \
+      org.opencontainers.image.authors="SIVARAM" \
+      custom.environment="dev/staging"
 EXPOSE 6379
-USER redis
 CMD ["redis-server", "--appendonly", "yes"]

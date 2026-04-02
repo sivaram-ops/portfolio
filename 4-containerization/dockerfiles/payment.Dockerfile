@@ -6,7 +6,11 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 # Stage 2:
 FROM python:3.9.18-alpine3.19
-LABEL org.opencontainers.image.title="roboshop-payment" org.opencontainers.image.description="Payment microservice for RoboShop"
+LABEL org.opencontainers.image.title="roboshop-payment" \
+      org.opencontainers.image.description="Payment application as microservice for RoboShop" \
+      org.opencontainers.image.version="v9" \
+      org.opencontainers.image.authors="SIVARAM" \
+      custom.environment="dev/staging"
 WORKDIR /payment
 RUN apk add --no-cache pcre && addgroup -g 1001 roboshop && adduser -S -u 1001 -G roboshop roboshop
 COPY --from=builder /usr/local /usr/local

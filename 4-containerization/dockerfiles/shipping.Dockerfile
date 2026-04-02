@@ -7,9 +7,11 @@ COPY src ./src
 RUN mvn clean package -DskipTests -B
 # Stage 2:
 FROM eclipse-temurin:21-jre-alpine
-LABEL maintainer="SIVARAM" org.opencontainers.image.title="RoboShop Shipping Service" \
-      org.opencontainers.image.description="a microservice which calculates the shipping cost based on distance" \
-      org.opencontainers.image.version="v9"
+LABEL org.opencontainers.image.title="roboshop-shipping" \
+      org.opencontainers.image.description="Shipping microservice for RoboShop" \
+      org.opencontainers.image.version="v9" \
+      org.opencontainers.image.authors="SIVARAM" \
+      custom.environment="dev/staging"
 EXPOSE 8080
 RUN addgroup -S roboshop && adduser -S -G roboshop roboshop
 WORKDIR /shipping
