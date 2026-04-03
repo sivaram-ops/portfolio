@@ -22,7 +22,7 @@ services:
     build:
       context: ./source-code/mongodb
       dockerfile: ./../../dockerfiles/mongodb.Dockerfile
-    image: sivaram0101/mongodb-roboshop:v11
+    image: mongodb-roboshop:v14
     container_name: mongodb
     volumes:
     - source: mongodb
@@ -33,7 +33,7 @@ services:
     build:
       context: ./source-code/redis
       dockerfile: ./../../dockerfiles/redis.Dockerfile
-    image: sivaram0101/redis-roboshop:v11
+    image: redis-roboshop:v14
     container_name: redis
     volumes:
     - source: redis
@@ -44,7 +44,7 @@ services:
     build:
       context: ./source-code/mysql
       dockerfile: ./../../dockerfiles/mysql.Dockerfile
-    image: sivaram0101/mysql-roboshop:v11
+    image: mysql-roboshop:v14
     container_name: mysql
     environment:
       MYSQL_DATABASE_NAME: ${MYSQL_DATABASE_NAME}
@@ -60,7 +60,7 @@ services:
     build:
       context: ./source-code/rabbitmq
       dockerfile: ./../../dockerfiles/rabbitmq.Dockerfile
-    image: sivaram0101/rabbitmq-roboshop:v11
+    image: rabbitmq-roboshop:v14
     container_name: rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
@@ -77,12 +77,12 @@ services:
     build:
       context: ./source-code/catalogue
       dockerfile: ./../../dockerfiles/catalogue.Dockerfile
-    image: sivaram0101/catalogue-roboshop:v11
+    image: catalogue-roboshop:v14
     container_name: catalogue
     environment:
-      MONGO_URL: "mongodb://mongodb:27017/catalogue"
-      CATALOGUE_SERVER_PORT: 8080
-      MONGO: true
+      MONGO: ${MONGO}
+      MONGO_URL: ${MONGO_URL_USERS}
+      CATALOGUE_SERVER_PORT: ${CATALOGUE_PORT}
     depends_on:
     - mongodb
 
@@ -90,12 +90,12 @@ services:
     build:
       context: ./source-code/user
       dockerfile: ./../../dockerfiles/user.Dockerfile
-    image: sivaram0101/user-roboshop:v11
+    image: user-roboshop:v14
     container_name: user
     environment:
+      MONGO: ${MONGO}
+      MONGO_URL: ${MONGO_URL_CATALOGUE}
       REDIS_HOST: ${REDIS_HOST}
-      MONGO_URL: "mongodb://mongodb:27017/users"
-      MONGO: true
     depends_on:
     - mongodb
     - redis
@@ -104,7 +104,7 @@ services:
     build:
       context: ./source-code/cart
       dockerfile: ./../../dockerfiles/cart.Dockerfile
-    image: sivaram0101/cart-roboshop:v11
+    image: cart-roboshop:v14
     container_name: cart
     environment:
       REDIS_HOST: ${REDIS_HOST}
@@ -118,7 +118,7 @@ services:
     build:
       context: ./source-code/shipping
       dockerfile: ./../../dockerfiles/shipping.Dockerfile
-    image: sivaram0101/shipping-roboshop:v11
+    image: shipping-roboshop:v14
     container_name: shipping
     environment:
       CART_HOST: ${CART_HOST}
@@ -136,7 +136,7 @@ services:
     build:
       context: ./source-code/payment
       dockerfile: ./../../dockerfiles/payment.Dockerfile
-    image: sivaram0101/payment-roboshop:v11
+    image: payment-roboshop:v14
     container_name: payment
     environment:
       CART_HOST: ${CART_HOST}
@@ -155,10 +155,10 @@ services:
     build:
       context: ./source-code/frontend
       dockerfile: ./../../dockerfiles/frontend.Dockerfile
-    image: sivaram0101/frontend-roboshop:v11
+    image: frontend-roboshop:v14
     container_name: frontend
     ports:
-    - "80:8080"
+    - "8888:8080"
     depends_on:
     - catalogue
     - cart

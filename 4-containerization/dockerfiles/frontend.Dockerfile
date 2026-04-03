@@ -10,4 +10,4 @@ RUN rm -rf /etc/nginx/conf.d/default.conf && rm -rf /usr/share/nginx/html/* && c
 USER nginx
 COPY --chown=nginx:nginx app-code /usr/share/nginx/html/
 COPY --chown=nginx:nginx nginx.conf /etc/nginx/nginx.conf
-EXPOSE 8080
+EXPOSE 8888

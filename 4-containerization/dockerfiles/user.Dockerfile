@@ -1,3 +1,4 @@
+# Stage 1:
 FROM node:alpine AS builder
 WORKDIR /build-dir
 COPY ./app-code/package*.json ./

@@ -12,9 +12,9 @@ LABEL org.opencontainers.image.title="roboshop-shipping" \
       org.opencontainers.image.version="v9" \
       org.opencontainers.image.authors="SIVARAM" \
       custom.environment="dev/staging"
-EXPOSE 8080
 RUN addgroup -S roboshop && adduser -S -G roboshop roboshop
 WORKDIR /shipping
 COPY --from=builder --chown=roboshop:roboshop /shipping/target/shipping-*.jar shipping.jar
 USER roboshop
+EXPOSE 8080
 CMD [ "java", "-XX:+ExitOnOutOfMemoryError", "-XX:MaxRAMPercentage=80.0", "-jar", "shipping.jar" ]
