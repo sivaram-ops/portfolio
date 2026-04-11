@@ -4,38 +4,69 @@ metadata:
   name: roboshop-microservices
   namespace: argocd
 spec:
+  strategy:
+    type: RollingSync
+    rollingSync:
+      steps:
+        - matchExpressions:
+            - key: app-group
+              operator: In
+              values: ["db"]
+          maxUpdate: 1
+        - matchExpressions:
+            - key: app-group
+              operator: In
+              values: ["app"]
+          maxUpdate: 1
+  
   generators:
   - list:
       elements:
-      - name: mongodb
-        path: 1-mongodb
-      - name: redis
-        path: 2-redis
-      - name: mysql
-        path: 3-mysql
-      - name: rabbitmq
-        path: 4-rabbitmq
-      - name: catalogue
-        path: 5-catalogue
-      - name: user
-        path: 6-user
-      - name: cart
-        path: 7-cart
-      - name: shipping
-        path: 8-shipping
-      - name: payment
-        path: 9-payment
-      - name: frontend
-        path: 10-frontend
+        - name: mongodb
+          valuesPath: envs/dev/mongodb
+          group: db
+        - name: redis
+          valuesPath: envs/dev/redis
+          group: db
+        - name: mysql
+          valuesPath: envs/dev/mysql
+          group: db
+        - name: rabbitmq
+          valuesPath: envs/dev/rabbitmq
+          group: db
+        - name: catalogue
+          valuesPath: envs/dev/catalogue
+          group: app
+        - name: user
+          valuesPath: envs/dev/user
+          group: app
+        - name: cart
+          valuesPath: envs/dev/cart
+          group: app
+        - name: shipping
+          valuesPath: envs/dev/shipping
+          group: app
+        - name: payment
+          valuesPath: envs/dev/payment
+          group: app
+        - name: frontend
+          valuesPath: envs/dev/frontend
+          group: app
+
   template:
     metadata:
       name: '{{name}}'
+      labels:
+        app-group: '{{group}}'
     spec:
       project: default
       source:
         repoURL: https://github.com/sivaram-ops/cd-roboshop.git
         targetRevision: HEAD
-        path: '{{path}}'
+        path: roboshop-microservice
+        helm:
+          valueFiles:
+          - '../{{valuesPath}}/values.yaml'
       destination:
         server: https://kubernetes.default.svc
         namespace: default
@@ -45,7 +76,3 @@ spec:
         automated:
           selfHeal: true
           prune: true
-      strategy:
-        type: RollingUpdate
-        rollingUpdate:
-          maxUpdate: 1
